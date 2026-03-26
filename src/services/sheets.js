@@ -12,6 +12,7 @@ const auth = new google.auth.JWT(
 );
 
 const sheets = google.sheets({ version: "v4", auth });
+let sheetsReady = false;
 
 const LEADS_HEADERS = [
   "Name",
@@ -96,6 +97,11 @@ export async function initializeSheets() {
     config.sheets.threadControlSheetName,
     THREAD_CONTROL_HEADERS
   );
+  sheetsReady = true;
+}
+
+export function areSheetsReady() {
+  return sheetsReady;
 }
 
 export async function getThreadControl(threadId) {

@@ -7,7 +7,11 @@ import {
   sendInstagramMessage,
   verifyMetaSignature
 } from "./services/meta.js";
-import { initializeSheets, upsertLead } from "./services/sheets.js";
+import {
+  areSheetsReady,
+  initializeSheets,
+  upsertLead
+} from "./services/sheets.js";
 import { getThreadState, saveThreadState } from "./services/state.js";
 
 const app = express();
@@ -29,7 +33,11 @@ app.get("/", (_req, res) => {
 });
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, uptime: process.uptime() });
+  res.json({
+    ok: true,
+    uptime: process.uptime(),
+    sheetsReady: areSheetsReady()
+  });
 });
 
 app.get("/webhook", (req, res) => {
@@ -206,13 +214,19 @@ async function buildReplyForMessage({
 }
 
 async function start() {
-  await initializeSheets();
-
   app.listen(config.port, () => {
     console.log(
       `[server] Listening on port ${config.port} for ${config.meta.instagramUsername}`
     );
   });
+
+  initializeSheets()
+    .then(() => {
+      console.log("[server] Google Sheets initialized");
+    })
+    .catch((error) => {
+      console.error("[server] Google Sheets initialization failed", error);
+    });
 }
 
 start().catch((error) => {
